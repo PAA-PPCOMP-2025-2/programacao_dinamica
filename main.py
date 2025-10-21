@@ -96,35 +96,37 @@ def corte(L, A, paineis, memoria):
 
     # Testa o painel nas duas orientações
     for rotacionado in [False, True]:
+        if rotacionado:
+            # Troca largura e altura
+            l_painel, a_painel = altura, largura
+        else:
+            l_painel, a_painel = largura, altura
 
         # Verifica se o painel cabe na folha atual (sobra)
-        if largura <= L and altura <= A:
+        if l_painel <= L and a_painel <= A:
             encaixou = True
 
             # Caminho 1:
             # Corte vertical se o painel não ocupa toda a largura da folha
-            if largura < L:
-                sobra1_L = L - largura - serra
-                sobra1_A = altura
-                sobra2_L = L
-                sobra2_A = A - altura - serra
-
+            if l_painel < L:
+                sobra_direita_L = L - l_painel - serra
+                sobra_direita_A = a_painel
+                sobra_baixo_L = L
+                sobra_baixo_A = A - a_painel - serra
 
                 # Sobra direita
                 valor1, plano1 = 0, []
-                if sobra1_L >= minimoComprimento and sobra1_A >= minimoComprimento:
-                    valor1, plano1 = corte(sobra1_L, sobra1_A, paineis_restantes, memoria)
+                if sobra_direita_L >= minimoComprimento and sobra_direita_A >= minimoComprimento:
+                    valor1, plano1 = corte(sobra_direita_L, sobra_direita_A, paineis_restantes, memoria)
 
                 # Sobra de baixo
                 valor2, plano2 = 0, []
-                if sobra2_L >= minimoComprimento and sobra2_A >= minimoComprimento:
-                    valor2, plano2 = corte(sobra2_L, sobra2_A, paineis_restantes, memoria)
+                if sobra_baixo_L >= minimoComprimento and sobra_baixo_A >= minimoComprimento:
+                    valor2, plano2 = corte(sobra_baixo_L, sobra_baixo_A, paineis_restantes, memoria)
 
                 # Armazena o total de paineis encaixados
                 valor_atual = 1 + valor1 + valor2
-
-                # posição inicial (x, y), rotação, dimensões (l, a), corte (x, y) + ...
-                plano_atual = [(largura, altura)] + plano1 + plano2
+                plano_atual = [((l_painel, a_painel), rotacionado, sobra_direita_L, sobra_baixo_A)] + plano1 + plano2
 
                 if valor_atual > melhor_valor:
                     melhor_valor = valor_atual
@@ -132,35 +134,49 @@ def corte(L, A, paineis, memoria):
 
             # Caminho 2:
             # Corte horizontal se o painel não ocupa toda a altura da folha
-            if altura < A:
-                sobra1_L = largura
-                sobra1_A = A - altura - serra
-                sobra2_L = L - largura - serra
-                sobra2_A = A
+            if a_painel < A:
+                sobra_direita_L = L - l_painel - serra
+                sobra1_A = A
+                sobra_baixo_L = l_painel
+                sobra_baixo_A = A - a_painel - serra
 
                 valor1, plano1 = 0, []
-                if sobra1_L >= minimoComprimento and sobra1_A >= minimoComprimento:
-                    valor1, plano1 = corte(sobra1_L, sobra1_A, paineis_restantes, memoria)
+                if sobra_direita_L >= minimoComprimento and sobra_direita_A >= minimoComprimento:
+                    valor1, plano1 = corte(sobra_direita_L, sobra_direita_A, paineis_restantes, memoria)
 
                 valor2, plano2 = 0, []
-                if sobra2_L >= minimoComprimento and sobra2_A >= minimoComprimento:
-                    valor2, plano2 = corte(sobra2_L, sobra2_A, paineis_restantes, memoria)
+                if sobra_baixo_L >= minimoComprimento and sobra_baixo_A >= minimoComprimento:
+                    valor2, plano2 = corte(sobra_baixo_L, sobra_baixo_A, paineis_restantes, memoria)
 
                 valor_atual = 1 + valor1 + valor2
-                plano_atual = [(largura, altura)] + plano1 + plano2
+                plano_atual = [((l_painel, a_painel), rotacionado, sobra_direita_L, sobra_baixo_A)] + plano1 + plano2
 
                 if valor_atual > melhor_valor:
                     melhor_valor = valor_atual
                     melhor_plano = plano_atual
 
+  # Caso especial: painel ocupa toda a área
+            if l_painel == L and a_painel == A:
+                valor_atual = 1
+                plano_atual = [((l_painel, a_painel), rotacionado, 0, 0)]
+                
+                valor_restante, plano_restante = corte(0, 0, paineis_restantes, memoria)
+                valor_atual += valor_restante
+                plano_atual += plano_restante
+                
+                if valor_atual > melhor_valor:
+                    melhor_valor = valor_atual
+                    melhor_plano = plano_atual
+    
     # Se não encaixou, retorna zero e lista vazia
     if not encaixou:
-        memoria[chave] = (0, [])
-        return 0, []
+        valor_restante, plano_restante = corte(L, A, paineis_restantes, memoria)
+        memoria[chave] = (valor_restante, plano_restante)
+        return valor_restante, plano_restante
+
 
     # Solução ótima para este subproblema
     memoria[chave] = (melhor_valor, melhor_plano)
-
     return melhor_valor, melhor_plano
 
 # As medidas serão sempre em centímetros
@@ -191,6 +207,27 @@ paineis = [(50, 60),(50, 40), (50, 90)] # todos cabem
 
 # Chama a função de corte
 total_paineis, plano_corte = corte(larguraMDF, alturaMDF, paineis, memoria)
+
+# Pré-processamento: ordenar e validar
+paineis_ordenados = ordenar_primeira_posicao(paineis)
+
+if validar_paineis(paineis_ordenados) and validar_area(paineis_ordenados):
+    # Chama a função de corte
+    total_paineis, plano_corte = corte(larguraMDF, alturaMDF, paineis_ordenados, memoria)
+
+    # Imprime resultado
+    print(f"\nTotal de painéis encaixados: {total_paineis}")
+    print("Plano de corte:")
+    
+    for i, entrada in enumerate(plano_corte, 1):
+        if len(entrada) >= 4:
+            dimensoes, rotacionado, sobra_dir, sobra_baixo = entrada
+            print(f"Painel {i}: Dimensões {dimensoes} {'(rotacionado)' if rotacionado else ''}")
+            print(f"  Sobra à direita: {sobra_dir}cm, Sobra abaixo: {sobra_baixo}cm")
+        else:
+            print(f"Entrada inválida no plano: {entrada}")
+else:
+    print("Paineis não validados - não é possível gerar plano de corte")
 
 # Imprime resultado
 print(f"Total de painéis encaixados: {total_paineis}")
