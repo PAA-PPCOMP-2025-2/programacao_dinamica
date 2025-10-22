@@ -40,11 +40,11 @@ def validar_paineis(paineis, minimoComprimento, larguraMDF, alturaMDF):
 
         # Se não couber em nenhuma posição
         if not cabe:
-            print("Pelo menos um painel não cabe na folha de MDF")
+            print (f"Painel {l}x{a} não cabe na folha de MDF {larguraMDF}x{alturaMDF}")
             return False
 
-    print(f"Individualmente cada painel cabe na folha de MDF")
-    return True  # Os paineis preenchem os requisitos
+    print("Individualmente cada painel cabe na folha de MDF")
+    return True
 
 # Função de validação do somatório das áreas dos paineis
 # A lista é rejeitada se o somatório alcança a área da folha menos um certo desperdício
@@ -56,7 +56,7 @@ def validar_area(paineis, larguraMDF, alturaMDF):
     area_paineis = sum(largura * altura for largura, altura in paineis)
 
     if not area_paineis <= area_mdf * (1 - fator_desperdicio):
-        print(f"Os paineis não cabem na folha de MDF considerando um desperdício de {(fator_desperdicio*100):.0f}%.")
+        print(f"Os paineis não cabem na folha de MDF considerando {(fator_desperdicio*100):.0f}% de desperdício.")
         return False
     print(f"Paineis validados")
     return True  # Os paineis cabem na folha de MDF
