@@ -56,8 +56,9 @@ def validar_area(paineis, larguraMDF, alturaMDF):
     area_paineis = sum(largura * altura for largura, altura in paineis)
 
     if not area_paineis <= area_mdf * (1 - fator_desperdicio):
-        print(f"Os paineis não cabem na folha de MDF considerando {(fator_desperdicio*100):.0f}% de desperdício.")
+        print(f"Área dos painéis ({area_paineis} cm²) excede a área disponível considerando {(fator_desperdicio*100):.0f}% de desperdício.")
         return False
+    
     print(f"Paineis validados")
     return True  # Os paineis cabem na folha de MDF
 
@@ -71,7 +72,7 @@ def optimize_cuts(paineis):
     ordenados = ordenar_primeira_posicao(paineis)
     if not (validar_paineis(ordenados, minimoComprimento, larguraMDF, alturaMDF) and 
             validar_area(ordenados, larguraMDF, alturaMDF)):
-        return None
+        return []# Retorna lista vazia em vez de None
 
     def corte(L, A, paineis_restantes, usados=None):
         if usados is None:
@@ -171,7 +172,11 @@ def optimize_cuts(paineis):
     return tabuas
 
 # Teste
-paineis = [(50, 60), (50, 40), (50, 90)]
+#paineis = [(50, 60), (50, 40), (50, 90)]
+paineis = [(184, 275), (183, 276)] # nenhum cabe
+#paineis = [(184, 275), (183, 276), (50, 60)] # pelo menos um cabe
+#paineis = [(184, 275), (50, 60), (183, 276)] # pelo menos um cabe
+#paineis = [(50, 60), (184, 275), (183, 276)] # pelo menos um cabe
 resultado = optimize_cuts(paineis)
 for i, t in enumerate(resultado, 1):
     print(f"Tábua {i}:")
