@@ -78,6 +78,7 @@ def optimize_cuts(paineis):
         if usados is None:
             usados = set()
         # Simplificar para apenas dimensões, removendo índices desnecessários para teste
+       
         paineis_restantes = [p for i, p in enumerate(paineis_restantes) if i not in usados]
         if not paineis_restantes:
             return 0, [], 0  # Valor, plano, área usada
@@ -173,8 +174,9 @@ def optimize_cuts(paineis):
 
 # Teste
 #paineis = [(50, 60), (50, 40), (50, 90)]
-paineis = [(184, 275), (183, 276)] # nenhum cabe
-#paineis = [(184, 275), (183, 276), (50, 60)] # pelo menos um cabe
+#paineis = [(50, 60), (50, 40)]
+#paineis = [(184, 275), (183, 276)] # nenhum cabe
+paineis = [(184, 275), (183, 276), (50, 60)] # pelo menos um cabe
 #paineis = [(184, 275), (50, 60), (183, 276)] # pelo menos um cabe
 #paineis = [(50, 60), (184, 275), (183, 276)] # pelo menos um cabe
 resultado = optimize_cuts(paineis)
